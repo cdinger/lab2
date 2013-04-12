@@ -6,7 +6,8 @@
  *
  */
 #include <pololu/orangutan.h>
-#include <avr/io.h>
+#include <stdlib.h>
+// #include <avr/io.h>
 
 int COUNTS_PER_ROTATION = 64;
 
@@ -72,6 +73,11 @@ ISR(TIMER0_COMPA_vect) {
   G_release_pd = 1;
 }
 
+void debug(msg) {
+  lcd_goto_xy(0,0);
+  print_long(msg);
+}
+
 void initialize_pd_timer() {
   // set OC0A (PB3) to output mode
   DDRB |= (1 << DDB3);
@@ -101,11 +107,57 @@ void initialize_pd_timer() {
   sei();
 }
 
+void initialize_motor() {
+  // clear everything
+  TCCR2A = 0x00;
+  TCCR2B = 0x00;
+
+  // Fast PWM mode, TOP set by OCRA (mode 7)
+  TCCR2B |= (1 << WGM22);
+  TCCR2A |= (1 << WGM21);
+  TCCR2A |= (1 << WGM20);
+
+  // Clear OC2B on Compare Match, set OC2B at BOTTOM, (non-inverting mode).
+  TCCR2A |= (1 << COM2B1);
+  TCCR2A &= ~(0 << COM2B0);
+
+  // No prescaler
+  TCCR2B |= (1 << CS20);
+
+  // data direction for motor port = output
+  DDRD |= (1 << PORTD6);
+
+  // data direction for motor direction pin = output
+  DDRC |= (1 << PORTC6);
+  PORTC |= (1 << PORTC6); // forward (clockwise)
+
+  // Set TOP
+  OCR2A = 0xff; // TODO: why does this need to be set at all??
+  OCR2B = 0x00; // initialize at 0
+}
+
+// speed is between -100.0 and 100.0
+//  100.0: full speed forwards/clockwise
+// -100.0: full speed backwards/counterclockwise
+void drive_motor(speed) {
+  int pwm_top = abs((speed/100.0) * 255.0);
+
+  if (speed >= 0.0) {
+    PORTC |= (1 << PORTC6); // forward
+  }
+  else {
+    PORTC &= ~(1 << PORTC6); // backwards
+  }
+
+  OCR2B = pwm_top;
+}
+
 void initialize_pd_controller() {
   initialize_pd_timer();
 
   // Initialize the encoders and specify the four input pins.
-  encoders_init(IO_C5, IO_C4, IO_C1, IO_C0);
+  // encoders_init(IO_C5, IO_C4, IO_C1, IO_C0);
+  encoders_init(PINC5, PINC4, PINC1, PINC0);
 }
 
 void pd_control() {
@@ -133,27 +185,21 @@ void pd_control() {
 }
 
 int main() {
-  initialize_pd_controller();
+  clear();
+  sei();
+  initialize_motor();
+  // initialize_pd_controller();
 
   while(1) {
-    delay_ms(1);
+    delay_ms(50);
 
-    if (G_release_pd) {
-      G_release_pd = 0;
-      // execute pd controller
-      pd_control();
-      // lcd_goto_xy(0,0);
-      // print_long(G_ms_ticks);
-    }
+    /*if (G_release_pd) {*/
+      /*G_release_pd = 0;*/
+      /*// execute pd controller*/
+      /*pd_control();*/
+      /*// lcd_goto_xy(0,0);*/
+      /*// print_long(G_ms_ticks);*/
+    /*}*/
   }
-
-  // TCCR0A &= ~(0 << WGM00); // clear bit
-  // TCCR0A |= (1 << WGM01);  // set bit
-  // PD6 = output
-  // PC6 = direction
-  // no interrupts needed for PWM
-  // use fast PWM
-  // TCCR2A
 }
-
 
