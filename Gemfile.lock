@@ -1,0 +1,25 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    args_parser (0.1.4)
+    em-websocket (0.5.0)
+      eventmachine (>= 0.12.9)
+      http_parser.rb (~> 0.5.3)
+    eventmachine (1.0.3)
+    eventmachine_httpserver (0.2.1)
+    http_parser.rb (0.5.3)
+    json (1.7.7)
+    serialport (1.1.0)
+    serialport-server (0.0.3)
+      args_parser
+      em-websocket
+      eventmachine
+      eventmachine_httpserver
+      json
+      serialport (>= 1.0.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  serialport-server (~> 0.0.3)
