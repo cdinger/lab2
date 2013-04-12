@@ -6,66 +6,14 @@
  *
  */
 #include <pololu/orangutan.h>
-#include <stdlib.h>
-// #include <avr/io.h>
-
-int COUNTS_PER_ROTATION = 64;
-
-// // Motor Control Functions -- pwm is an 8-bit value
-// //  (i.e. ranges from 0 to 255)
-// void forward(unsigned char pwm)
-// {
-//   OCR2A = 0;
-//   OCR2B = pwm;
-// }
-// 
-// void reverse(unsigned char pwm)
-// {
-//   OCR2B = 0;
-//   OCR2A = pwm;
-// }
-// 
-// // Motor Initialization routine -- this function must be called
-// //  before you use any of the above functions
-// void motors_init()
-// {
-//   // configure for inverted PWM output on motor control pins:
-//   //  set OCxx on compare match, clear on timer overflow
-//   //  Timer0 and Timer2 count up from 0 to 255
-//   TCCR0A = TCCR2A = 0xF3;
-// 
-//   // use the system clock/8 (=2.5 MHz) as the timer clock
-//   TCCR0B = TCCR2B = 0x02;
-// 
-//   // initialize all PWMs to 0% duty cycle (braking)
-//   OCR0A = OCR0B = OCR2A = OCR2B = 0;
-// 
-//   // set PWM pins as digital outputs (the PWM signals will not
-//   // appear on the lines if they are digital inputs)
-//   DDRD |= (1 << PORTD3) | (1 << PORTD5) | (1 << PORTD6);
-//   DDRB |= (1 << PORTB3);
-// }
-// 
-// #define F_CPU 20000000  // system clock is 20 MHz
-// #include <util/delay.h>  // uses F_CPU to achieve us and ms delays
-// 
-// // delay for time_ms milliseconds by looping
-// //  time_ms is a two-byte value that can range from 0 - 65535
-// //  a value of 65535 (0xFF) produces an infinite delay
-// void delay_ms(unsigned int time_ms)
-// {
-//   // _delay_ms() comes from <util/delay.h> and can only
-//   //  delay for a max of around 13 ms when the system
-//   //  clock is 20 MHz, so we define our own longer delay
-//   //  routine based on _delay_ms()
-//   unsigned int i;
-//   for (i = 0; i < time_ms; i++)
-//     _delay_ms(1);
-// }
+#include <stdio.h>
+#include "motors.h"
+#include "serial.h"
 
 int G_ms_ticks = 0;
 int G_release_pd = 0;
 int G_current_speed = 0;
+int G_max_speed = 0;
 
 // This is the Interrupt Service Routine for Timer0
 ISR(TIMER0_COMPA_vect) {
@@ -107,60 +55,20 @@ void initialize_pd_timer() {
   sei();
 }
 
-void initialize_motor() {
-  // clear everything
-  TCCR2A = 0x00;
-  TCCR2B = 0x00;
-
-  // Fast PWM mode, TOP set by OCRA (mode 7)
-  TCCR2B |= (1 << WGM22);
-  TCCR2A |= (1 << WGM21);
-  TCCR2A |= (1 << WGM20);
-
-  // Clear OC2B on Compare Match, set OC2B at BOTTOM, (non-inverting mode).
-  TCCR2A |= (1 << COM2B1);
-  TCCR2A &= ~(0 << COM2B0);
-
-  // No prescaler
-  TCCR2B |= (1 << CS20);
-
-  // data direction for motor port = output
-  DDRD |= (1 << PORTD6);
-
-  // data direction for motor direction pin = output
-  DDRC |= (1 << PORTC6);
-  PORTC |= (1 << PORTC6); // forward (clockwise)
-
-  // Set TOP
-  OCR2A = 0xff; // TODO: why does this need to be set at all??
-  OCR2B = 0x00; // initialize at 0
-}
-
-// speed is between -100.0 and 100.0
-//  100.0: full speed forwards/clockwise
-// -100.0: full speed backwards/counterclockwise
-void drive_motor(speed) {
-  int pwm_top = abs((speed/100.0) * 255.0);
-
-  if (speed >= 0.0) {
-    PORTC |= (1 << PORTC6); // forward
-  }
-  else {
-    PORTC &= ~(1 << PORTC6); // backwards
-  }
-
-  OCR2B = pwm_top;
-}
 
 void initialize_pd_controller() {
   initialize_pd_timer();
 
   // Initialize the encoders and specify the four input pins.
-  // encoders_init(IO_C5, IO_C4, IO_C1, IO_C0);
-  encoders_init(PINC5, PINC4, PINC1, PINC0);
+  encoders_init(IO_C5, IO_C4, IO_C1, IO_C0);
 }
 
-void pd_control() {
+int degrees_in_wheel_ticks(int degrees) {
+  float degrees_per_tick = (360.0 / COUNTS_PER_ROTATION);
+  return (degrees/degrees_per_tick);
+}
+
+void pd_control(int relative_degrees) {
   // T = Kp(Pr - Pm) - Kd*Vm
   //
   // T = Output motor signal (torque)
@@ -171,35 +79,53 @@ void pd_control() {
   // Kd = Derivative gain
 
   int Pm = encoders_get_counts_m2();
-  int Pr = COUNTS_PER_ROTATION;
-  float Kp = 10.0;
+  int Pr = degrees_in_wheel_ticks(relative_degrees);
+  float Kp = 4.0;
   float Kd = 0.1;
-  int Vm = G_current_speed; // 1; // current motor velocity?
+  int Vm = G_current_speed; // TODO: current motor velocity?
   int T = (Kp * (Pr - Pm)) - (Kd * Vm);
 
-  lcd_goto_xy(0,1);
-  print_long(T);
+  drive_motor(T);
 
-  set_motors(T, T); //motorSpeed, motorSpeed);
+  if (T > G_max_speed) {
+    G_max_speed = T;
+  }
+
+  /*clear();*/
+  /*lcd_goto_xy(0,0);*/
+  /*print_long(T);*/
+  /*lcd_goto_xy(0,1);*/
+  /*print_long(G_max_speed);*/
+
+  /*char * str;*/
+  /*memcpy(str, (char*)&T, sizeof(int));*/
+  /*send_serial(str);*/
+
   G_current_speed = T;
 }
 
 int main() {
-  clear();
   sei();
+  clear();
   initialize_motor();
-  // initialize_pd_controller();
+  initialize_pd_controller();
+
+  send_serial("Starting...\n\r");
+  delay_ms(1000);
 
   while(1) {
-    delay_ms(50);
+    delay_ms(1);
 
-    /*if (G_release_pd) {*/
-      /*G_release_pd = 0;*/
-      /*// execute pd controller*/
-      /*pd_control();*/
-      /*// lcd_goto_xy(0,0);*/
-      /*// print_long(G_ms_ticks);*/
-    /*}*/
+    if (G_release_pd) {
+      G_release_pd = 0;
+      // execute pd controller
+      pd_control(360);
+      // lcd_goto_xy(0,0);
+      // print_long(G_ms_ticks);
+    }
+
+    serial_check();
+    check_for_new_bytes_received();
   }
 }
 
