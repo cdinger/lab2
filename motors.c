@@ -32,8 +32,8 @@ void initialize_motor() {
 }
 
 void drive_motor(int speed) {
-  // int pwm_top = abs((speed/100.0) * 255.0);
   int pwm_top = 255;
+
   if (abs(speed) < 255) {
     pwm_top = abs(speed);
   }
