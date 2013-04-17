@@ -8,12 +8,14 @@
 #include <pololu/orangutan.h>
 #include <stdio.h>
 #include "motors.h"
-#include "serial.h"
+#include "menu.h"
 
 int G_ms_ticks = 0;
 int G_release_pd = 0;
 int G_current_speed = 0;
 int G_max_speed = 0;
+int G_previous_counts = 0;
+int G_previous_T = 0;
 
 // This is the Interrupt Service Routine for Timer0
 ISR(TIMER0_COMPA_vect) {
@@ -78,11 +80,13 @@ void pd_control(int relative_degrees) {
   // Kp = Proportional gain
   // Kd = Derivative gain
 
-  int Pm = encoders_get_counts_m2();
+  int current_counts = encoders_get_counts_m2();
+  int Pm = current_counts;
   int Pr = degrees_in_wheel_ticks(relative_degrees);
   float Kp = 4.0;
   float Kd = 0.1;
-  int Vm = G_current_speed; // TODO: current motor velocity?
+  // int Vm = G_current_speed; // TODO: current motor velocity?
+  int Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
   int T = (Kp * (Pr - Pm)) - (Kd * Vm);
 
   drive_motor(T);
@@ -91,38 +95,35 @@ void pd_control(int relative_degrees) {
     G_max_speed = T;
   }
 
-  /*clear();*/
-  /*lcd_goto_xy(0,0);*/
-  /*print_long(T);*/
-  /*lcd_goto_xy(0,1);*/
-  /*print_long(G_max_speed);*/
+  // every 100ms
+  if ((G_ms_ticks % 100) == 0) {
+    // print_usb("blah.\n\r");
+  }
 
-  /*char * str;*/
-  /*memcpy(str, (char*)&T, sizeof(int));*/
-  /*send_serial(str);*/
+  G_previous_counts = current_counts;
+}
 
-  G_current_speed = T;
+int interpolate_trajetory() {
+  return 0;
 }
 
 int main() {
   sei();
   clear();
+  lcd_init_printf();
   initialize_motor();
   initialize_pd_controller();
-
-  send_serial("Starting...\n\r");
-  delay_ms(1000);
+  // initialize_serial();
+  init_menu();
 
   while(1) {
-    delay_ms(1);
-
-    if (G_release_pd) {
-      G_release_pd = 0;
-      // execute pd controller
-      pd_control(360);
-      // lcd_goto_xy(0,0);
-      // print_long(G_ms_ticks);
-    }
+    /*if (G_release_pd) {*/
+      /*G_release_pd = 0;*/
+      /*// execute pd controller*/
+      /*pd_control(720);*/
+      /*// lcd_goto_xy(0,0);*/
+      /*// print_long(G_ms_ticks);*/
+    /*}*/
 
     serial_check();
     check_for_new_bytes_received();

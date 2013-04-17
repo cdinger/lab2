@@ -15,7 +15,7 @@ PORT ?= /dev/ttyACM0
 AVRDUDE=avrdude
 
 TARGET=lab2
-OBJECT_FILES=lab2.o motors.o serial.o
+OBJECT_FILES=lab2.o motors.o menu.o # serial.o
 
 all: $(TARGET).hex
 

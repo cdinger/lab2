@@ -1,0 +1,13 @@
+int G_ms_ticks;
+int G_release_pd;
+int G_current_speed;
+int G_max_speed;
+int G_previous_counts;
+int G_previous_T;
+void debug(msg);
+void initialize_pd_timer();
+void initialize_pd_controller();
+int degrees_in_wheel_ticks(int degrees);
+void pd_control(int relative_degrees);
+int interpolate_trajetory();
+int main();

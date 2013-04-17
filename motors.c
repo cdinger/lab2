@@ -27,24 +27,31 @@ void initialize_motor() {
 
   // Set TOP
   OCR2A = 0xff; // TODO: why does this need to be set at all??
+                // something to do with mode 7? should try other fast PWM mode.
   OCR2B = 0x00; // initialize at 0
 }
 
-// speed is between -100.0 and 100.0
-//  100.0: full speed forwards/clockwise
-// -100.0: full speed backwards/counterclockwise
-void drive_motor(float speed) {
+void drive_motor(int speed) {
   // int pwm_top = abs((speed/100.0) * 255.0);
   int pwm_top = 255;
   if (abs(speed) < 255) {
-    pwm_top = speed;
+    pwm_top = abs(speed);
   }
 
-  if (speed >= 0.0) {
-    PORTC &= ~(1 << PORTC6); // forward
+  // stop the motor
+  if (speed == 0) {
+    // data direction for motor port = input
+    DDRD &= ~(0 << PORTD6);
   }
   else {
-    PORTC |= (1 << PORTC6); // backwards
+    // data direction for motor port = output
+    DDRD |= (1 << PORTD6);
+    if (speed > 0) {
+      PORTC = 0x00; // &= ~(0 << PORTC6); // forward
+    }
+    else {
+      PORTC = 0xff; // |= (1 << PORTC6); // backwards
+    }
   }
 
   OCR2B = pwm_top;
