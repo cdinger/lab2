@@ -98,8 +98,8 @@ void pd_control(int relative_degrees) {
   /*G_Kp = 4.0;*/
   /*G_Kd = 0.1;*/
   // int Vm = G_current_speed; // TODO: current motor velocity?
-  int G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
-  int G_T = (G_Kp * (G_Pr - G_Pm)) - (((float)G_Kd/10) * G_Vm);
+  G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
+  G_T = (G_Kp * (G_Pr - G_Pm)) - (((float)G_Kd/10.0f) * G_Vm);
 
   drive_motor(G_T);
 

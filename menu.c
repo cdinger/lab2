@@ -61,7 +61,7 @@ void process_received_string(const char* buffer) {
     break;
     case 'V':
       // View the current values Kd, Kp, Vm, Pr, Pm, and T
-      length = sprintf(tempBuffer, "\n\rKd=1/%d Kp=%d Vm=%d Pr=%d Pm=%d T=%d", G_Kd, G_Kp, G_Vm, G_Pr, G_Pm, G_T);
+      length = sprintf(tempBuffer, "\n\rKd=%d/10 Kp=%d Vm=%d Pr=%d Pm=%d T=%d", G_Kd, G_Kp, G_Vm, G_Pr, G_Pm, G_T);
       print_usb(tempBuffer, length);
       break;
     case 'R':

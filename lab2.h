@@ -4,12 +4,12 @@ int G_current_speed;
 int G_max_speed;
 int G_previous_counts;
 int G_previous_T;
-int G_Pm;
-int G_Pr;
+volatile int G_Pm;
+volatile int G_Pr;
 volatile int G_Kp;
 volatile int G_Kd;
-int G_Vm;
-int G_T;
+volatile int G_Vm;
+volatile int G_T;
 int G_logging_enabled;
 int G_relative_degrees;
 

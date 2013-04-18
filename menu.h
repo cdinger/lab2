@@ -8,8 +8,8 @@
 
 #include <pololu/orangutan.h>
 
-#define MENU "\n\n\rMenu: [LVRPpDd] <int>: "
-#define MENU_LENGTH 26
+#define MENU "\n\n\rMenu: [LVRPpDd]: "
+#define MENU_LENGTH 20
 
 /* This is a customization of the serial2 example from the Pololu library examples. (ACL)
  *
