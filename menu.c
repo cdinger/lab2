@@ -4,7 +4,7 @@
 #include "menu.h"
 #include "lab2.h"
 
-#define ECHO2LCD
+// #define ECHO2LCD
 
 char receive_buffer[32];
 unsigned char receive_buffer_position;
@@ -36,11 +36,14 @@ void init_menu() {
 //
 void process_received_string(const char* buffer) {
   int length;
-  char tempBuffer[32];
+  char tempBuffer[64];
   char op_char;
   int value;
   int parsed;
+  int old_Kp;
+  int old_Kd;
 
+  print_usb(buffer, sizeof(buffer));
   parsed = sscanf(buffer, "%c %d", &op_char, &value);
 #ifdef ECHO2LCD
   lcd_goto_xy(0,0);
@@ -49,10 +52,49 @@ void process_received_string(const char* buffer) {
 
   // Check valid command and implement
   switch (op_char) {
+    case 'x':
+      print_long(G_Kp);
+      break;
+    case 'L':
+      // Start/Stop Logging (print) the values of Pr, Pm, and T.
+      toggle_logging();
+    break;
+    case 'V':
+      // View the current values Kd, Kp, Vm, Pr, Pm, and T
+      length = sprintf(tempBuffer, "\n\rKd=1/%d Kp=%d Vm=%d Pr=%d Pm=%d T=%d", G_Kd, G_Kp, G_Vm, G_Pr, G_Pm, G_T);
+      print_usb(tempBuffer, length);
+      break;
     case 'R':
-      while(1) {
-        pd_control(value);
-      }
+      // Set the reference position to degrees
+      G_relative_degrees = value;
+      break;
+    case 'P':
+      // Increase Kp by an amount of your choice*
+      old_Kp = G_Kp;
+      G_Kp += 1;
+      length = sprintf(tempBuffer, "\n\rKp was %d, is now %d", old_Kp, G_Kp);
+      print_usb(tempBuffer, length);
+      break;
+    case 'p':
+      // Decrease Kp by an amount of your choice
+      old_Kp = G_Kp;
+      G_Kp -= 1;
+      length = sprintf(tempBuffer, "\n\rKp was %d, is now %d", old_Kp, G_Kp);
+      print_usb(tempBuffer, length);
+      break;
+    case 'D':
+      // Increase Kd by an amount of your choice
+      old_Kd = G_Kd;
+      G_Kd += 1;
+      length = sprintf(tempBuffer, "\n\rKd was %d, is now %d", old_Kd, G_Kd);
+      print_usb(tempBuffer, length);
+      break;
+    case 'd':
+      // Decrease Kd by an amount of your choice
+      old_Kd = G_Kd;
+      G_Kd -= 1;
+      length = sprintf(tempBuffer, "\n\rKd was %d, is now %d", old_Kd, G_Kd);
+      print_usb(tempBuffer, length);
       break;
     default:
       length = sprintf(tempBuffer, "\n\rMalformed command: %s", buffer);

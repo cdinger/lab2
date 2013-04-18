@@ -7,6 +7,7 @@
  */
 #include <pololu/orangutan.h>
 #include <stdio.h>
+#include "lab2.h"
 #include "motors.h"
 #include "menu.h"
 
@@ -26,6 +27,16 @@ ISR(TIMER0_COMPA_vect) {
 void debug(msg) {
   lcd_goto_xy(0,0);
   print_long(msg);
+}
+
+void toggle_logging() {
+  G_logging_enabled = !G_logging_enabled;
+  if (G_logging_enabled) {
+    print_usb("\n\rLogging enabled.", 18);
+  }
+  else {
+    print_usb("\n\rLogging disabled.", 19);
+  }
 }
 
 void initialize_pd_timer() {
@@ -80,31 +91,35 @@ void pd_control(int relative_degrees) {
   // Kp = Proportional gain
   // Kd = Derivative gain
 
+  char printBuffer[64];
   int current_counts = encoders_get_counts_m2();
-  int Pm = current_counts;
-  int Pr = degrees_in_wheel_ticks(relative_degrees);
-  float Kp = 4.0;
-  float Kd = 0.1;
+  G_Pm = current_counts;
+  G_Pr = degrees_in_wheel_ticks(relative_degrees);
+  /*G_Kp = 4.0;*/
+  /*G_Kd = 0.1;*/
   // int Vm = G_current_speed; // TODO: current motor velocity?
-  int Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
-  int T = (Kp * (Pr - Pm)) - (Kd * Vm);
+  int G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
+  int G_T = (G_Kp * (G_Pr - G_Pm)) - (((float)G_Kd/10) * G_Vm);
 
-  drive_motor(T);
+  drive_motor(G_T);
 
-  if (T > G_max_speed) {
-    G_max_speed = T;
+  if (G_T > G_max_speed) {
+    G_max_speed = G_T;
   }
 
   // every 100ms
   if ((G_ms_ticks % 100) == 0) {
-    // print_usb("blah.\n\r");
+    if (G_logging_enabled) {
+      sprintf(printBuffer, "\n\r{T:%d, Pm:?, Pr:?, Kp:?, Kd:?}", G_T);
+      print_usb(printBuffer, sizeof(printBuffer));
+    }
   }
 
   G_previous_counts = current_counts;
 }
 
-int interpolate_trajetory() {
-  return 0;
+void interpolate_trajectory() {
+  pd_control(G_relative_degrees);
 }
 
 int main() {
@@ -116,14 +131,20 @@ int main() {
   // initialize_serial();
   init_menu();
 
+  G_logging_enabled = 0;
+  G_relative_degrees = 0;
+  G_Kp = 10;
+  G_Kd = 1;
+
   while(1) {
-    /*if (G_release_pd) {*/
-      /*G_release_pd = 0;*/
-      /*// execute pd controller*/
-      /*pd_control(720);*/
-      /*// lcd_goto_xy(0,0);*/
-      /*// print_long(G_ms_ticks);*/
-    /*}*/
+    if (G_release_pd) {
+      G_release_pd = 0;
+      // execute pd controller
+      interpolate_trajectory();
+      // pd_control(720);
+      // lcd_goto_xy(0,0);
+      // print_long(G_ms_ticks);
+    }
 
     serial_check();
     check_for_new_bytes_received();
