@@ -43,7 +43,7 @@ void process_received_string(const char* buffer) {
   int old_Kp;
   int old_Kd;
 
-  print_usb(buffer, sizeof(buffer));
+  print_usb(buffer, strlen(buffer));
   parsed = sscanf(buffer, "%c %d", &op_char, &value);
 #ifdef ECHO2LCD
   lcd_goto_xy(0,0);
