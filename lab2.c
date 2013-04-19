@@ -17,11 +17,14 @@ int G_current_speed = 0;
 int G_max_speed = 0;
 int G_previous_counts = 0;
 int G_previous_T = 0;
+int G_pd_frequency = 1000;
 
 // This is the Interrupt Service Routine for Timer0
 ISR(TIMER0_COMPA_vect) {
   G_ms_ticks++;
-  G_release_pd = 1;
+  if ((int)(G_ms_ticks % (1000 / G_pd_frequency)) == 0) {
+    G_release_pd = 1;
+  }
 }
 
 void debug(msg) {
@@ -59,13 +62,11 @@ void initialize_pd_timer() {
 
   // Set output compare value = 78
   // 20M (processor clock) / 1000 / 256 = 78.12
+  // 20M / 50 / 256
   OCR0A = 78;
 
   // Timer/Counter0 Output Compare Match A Interrupt Enable
   TIMSK0 |= (1 << OCIE0A);
-
-  // enable interrupts
-  sei();
 }
 
 
@@ -77,8 +78,11 @@ void initialize_pd_controller() {
 }
 
 int degrees_in_wheel_ticks(int degrees) {
-  float degrees_per_tick = (360.0 / COUNTS_PER_ROTATION);
-  return (degrees/degrees_per_tick);
+  return (degrees / (360 / COUNTS_PER_ROTATION));
+}
+
+int wheel_ticks_in_degrees(int wheel_ticks) {
+  return (wheel_ticks * (360 / COUNTS_PER_ROTATION));
 }
 
 void pd_control(int relative_degrees) {
@@ -92,34 +96,69 @@ void pd_control(int relative_degrees) {
   // Kd = Derivative gain
 
   char printBuffer[64];
+  int length;
   int current_counts = encoders_get_counts_m2();
   G_Pm = current_counts;
   G_Pr = degrees_in_wheel_ticks(relative_degrees);
   /*G_Kp = 4.0;*/
   /*G_Kd = 0.1;*/
-  // int Vm = G_current_speed; // TODO: current motor velocity?
-  G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
-  G_T = (G_Kp * (G_Pr - G_Pm)) - (((float)G_Kd/10.0f) * G_Vm);
+  G_Vm = G_current_speed; // TODO: current motor velocity?
+  // G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
+  G_T = (G_Kp * (G_Pr - G_Pm)) - (int)(((float)G_Kd/10.0f) * (float)G_Vm);
 
   drive_motor(G_T);
+
+  // every 100ms
+  if ((G_ms_ticks % 100) == 0) {
+    if (G_logging_enabled) {
+      print_current_values();
+    }
+  }
 
   if (G_T > G_max_speed) {
     G_max_speed = G_T;
   }
 
-  // every 100ms
-  if ((G_ms_ticks % 100) == 0) {
-    if (G_logging_enabled) {
-      sprintf(printBuffer, "\n\r{T:%d, Pm:?, Pr:?, Kp:?, Kd:?}", G_T);
-      print_usb(printBuffer, sizeof(printBuffer));
-    }
-  }
-
+  G_current_speed = G_T;
   G_previous_counts = current_counts;
+
+}
+
+void print_current_values() {
+  int length;
+  char tempBuffer[64];
+  length = sprintf(tempBuffer, "\n\rF=%d S=%d Kd=%d/10 Kp=%d Vm=%d Pr=%d Pm=%d T=%d", G_pd_frequency, G_degree_step_size, G_Kd, G_Kp, G_Vm, G_Pr, G_Pm, G_T);
+  print_usb(tempBuffer, length);
+}
+
+int min(int a, int b) {
+  if (a < b)
+    return a;
+  else
+    return b;
+}
+
+int max(int a, int b) {
+  if (a > b)
+    return a;
+  else
+    return b;
 }
 
 void interpolate_trajectory() {
-  pd_control(G_relative_degrees);
+  // G_Pm = current counts
+  int target;
+  int pm_degrees = wheel_ticks_in_degrees(G_Pm);
+
+  if (G_absolute_degrees >= pm_degrees) {
+    target = pm_degrees + min(G_degree_step_size, G_absolute_degrees - pm_degrees);
+  }
+  else {
+    target = pm_degrees - min(G_degree_step_size, pm_degrees - G_absolute_degrees);
+  }
+  /*clear();*/
+  /*print_long(target);*/
+  pd_control(target);
 }
 
 int main() {
@@ -132,8 +171,9 @@ int main() {
   init_menu();
 
   G_logging_enabled = 0;
-  G_relative_degrees = 0;
-  G_Kp = 10;
+  G_absolute_degrees = 0;
+  G_degree_step_size = 45;
+  G_Kp = 30;
   G_Kd = 1;
 
   while(1) {

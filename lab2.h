@@ -11,13 +11,17 @@ volatile int G_Kd;
 volatile int G_Vm;
 volatile int G_T;
 int G_logging_enabled;
-int G_relative_degrees;
+int G_absolute_degrees;
+int G_pd_frequency;
+int G_degree_step_size;
 
 void toggle_logging();
 void debug(msg);
 void initialize_pd_timer();
 void initialize_pd_controller();
 int degrees_in_wheel_ticks(int degrees);
+int wheel_ticks_in_degrees(int wheel_ticks);
 void pd_control(int relative_degrees);
+void print_current_values();
 void interpolate_trajetory();
 int main();

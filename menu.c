@@ -38,7 +38,7 @@ void process_received_string(const char* buffer) {
   int length;
   char tempBuffer[64];
   char op_char;
-  int value;
+  int value = -1;
   int parsed;
   int old_Kp;
   int old_Kd;
@@ -52,26 +52,43 @@ void process_received_string(const char* buffer) {
 
   // Check valid command and implement
   switch (op_char) {
-    case 'x':
-      print_long(G_Kp);
-      break;
-    case 'L':
-      // Start/Stop Logging (print) the values of Pr, Pm, and T.
-      toggle_logging();
-    break;
-    case 'V':
-      // View the current values Kd, Kp, Vm, Pr, Pm, and T
-      length = sprintf(tempBuffer, "\n\rKd=%d/10 Kp=%d Vm=%d Pr=%d Pm=%d T=%d", G_Kd, G_Kp, G_Vm, G_Pr, G_Pm, G_T);
+    case 'S':
+    case 's':
+      G_degree_step_size = value;
+      length = sprintf(tempBuffer, "\n\rStep size has been set to %d", value);
       print_usb(tempBuffer, length);
       break;
+    case 'F':
+    case 'f':
+      G_pd_frequency = value;
+      length = sprintf(tempBuffer, "\n\rPD frequency has been set to %d Hz", value);
+      print_usb(tempBuffer, length);
+      break;
+    case 'L':
+    case 'l':
+      // Start/Stop Logging (print) the values of Pr, Pm, and T.
+      toggle_logging();
+      break;
+    break;
+    case 'V':
+    case 'v':
+      // View the current values Kd, Kp, Vm, Pr, Pm, and T
+      print_current_values();
+      break;
     case 'R':
+    case 'r':
       // Set the reference position to degrees
-      G_relative_degrees = value;
+      G_absolute_degrees = value;
       break;
     case 'P':
       // Increase Kp by an amount of your choice*
       old_Kp = G_Kp;
-      G_Kp += 1;
+      if (value < 0) {
+        G_Kp += 1;
+      }
+      else {
+        G_Kp = value;
+      }
       length = sprintf(tempBuffer, "\n\rKp was %d, is now %d", old_Kp, G_Kp);
       print_usb(tempBuffer, length);
       break;
@@ -85,7 +102,12 @@ void process_received_string(const char* buffer) {
     case 'D':
       // Increase Kd by an amount of your choice
       old_Kd = G_Kd;
-      G_Kd += 1;
+      if (value < 0) {
+        G_Kd += 1;
+      }
+      else {
+        G_Kd = value;
+      }
       length = sprintf(tempBuffer, "\n\rKd was %d, is now %d", old_Kd, G_Kd);
       print_usb(tempBuffer, length);
       break;
