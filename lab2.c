@@ -100,8 +100,6 @@ void pd_control(int relative_degrees) {
   int current_counts = encoders_get_counts_m2();
   G_Pm = current_counts;
   G_Pr = degrees_in_wheel_ticks(relative_degrees);
-  /*G_Kp = 4.0;*/
-  /*G_Kd = 0.1;*/
   G_Vm = G_current_speed; // TODO: current motor velocity?
   // G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
   G_T = (G_Kp * (G_Pr - G_Pm)) - (int)(((float)G_Kd/10.0f) * (float)G_Vm);
@@ -156,8 +154,6 @@ void interpolate_trajectory() {
   else {
     target = pm_degrees - min(G_degree_step_size, pm_degrees - G_absolute_degrees);
   }
-  /*clear();*/
-  /*print_long(target);*/
   pd_control(target);
 }
 
@@ -167,13 +163,12 @@ int main() {
   lcd_init_printf();
   initialize_motor();
   initialize_pd_controller();
-  // initialize_serial();
   init_menu();
 
   G_logging_enabled = 0;
   G_absolute_degrees = 0;
   G_degree_step_size = 45;
-  G_Kp = 30;
+  G_Kp = 20;
   G_Kd = 1;
 
   while(1) {
@@ -181,11 +176,7 @@ int main() {
       G_release_pd = 0;
       // execute pd controller
       interpolate_trajectory();
-      // pd_control(720);
-      // lcd_goto_xy(0,0);
-      // print_long(G_ms_ticks);
     }
-
     serial_check();
     check_for_new_bytes_received();
   }
