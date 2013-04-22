@@ -79,7 +79,7 @@ able to input 10 degrees and see at least some motor movement.
 
 Using your optimally tuned values for the PD controller running at 1kHz, graph Pm, Pr and T while executing the trajectory: rotate the motor forward 360 degrees, hold for .5 seconds, then rotate backwards for 360 degrees, hold for .5 seconds, rotate forwards for 5 degrees. Be sure to graph the entire trajectory. 
 
-![Trajectory graph at 1 kHz](https://github.umn.edu/ding0057/lab2/raw/master/graph_1khz.png "Trajectory at 1 kHz")
+![Trajectory graph at 1 kHz](https://raw.github.com/cdinger/lab2/master/graph_1khz.png "Trajectory at 1 kHz")
 
 Note: the reference points were entered manually; the gaps between
 movements may not be exactly .5 seconds.
@@ -92,7 +92,7 @@ Note: the reference points were entered manually; the gaps between movements may
 
 ### 50 Hz
 
-![Trajectory graph at 50 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_50hz.png "Trajectory at 50 Hz")
+![Trajectory graph at 50 Hz](https://raw.github.com/cdinger/lab2/master/graph_50hz.png "Trajectory at 50 Hz")
 
 At 50 Hz, the motor appeared to act similar to 1kHz with the exception
 of the 5 degree target; the motor was unable to produce any movement for
@@ -102,7 +102,7 @@ insufficient to produce movement.
 
 ### 5 Hz
 
-![Trajectory graph at 5 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_5hz.png "Trajectory at 5 Hz")
+![Trajectory graph at 5 Hz](https://raw.github.com/cdinger/lab2/master/graph_5hz.png "Trajectory at 5 Hz")
 
 At 5Hz, the motor swung around erratically and the program crashed three
 steps in. The chart, of course, is nonsense. At this low frequency, the
