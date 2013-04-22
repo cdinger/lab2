@@ -64,7 +64,7 @@ able to input 10 degrees and see at least some motor movement.
 Note: the reference points were entered manually; the gaps between
 movements may not be exactly .5 seconds.
 
-![Trajectory graph at 1 kHz](graph_1khz.png "Trajectory at 1 kHz")
+![Trajectory graph at 1 kHz](https://github.umn.edu/ding0057/lab2/raw/master/graph_1khz.png "Trajectory at 1 kHz")
 
 4. Run your PD controller at 50Hz and 5Hz while graphing the same variables. Discuss the results.
 
@@ -73,11 +73,13 @@ Note: the reference points were entered manually; the gaps between movements may
 50 Hz
 -----
 
-![Trajectory graph at 50 Hz](graph_50hz.png "Trajectory at 50 Hz")
+![Trajectory graph at 50 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_50hz.png "Trajectory at 50 Hz")
 
-At 50 Hz, the motor appeared to act similar to 1kHz.
+At 50 Hz, the motor appeared to act similar to 1kHz with the exception
+of the 5 degree target; the motor was unable to produce any movement for
+this target.
 
-![Trajectory graph at 5 Hz](graph_5hz.png "Trajectory at 5 Hz")
+![Trajectory graph at 5 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_50hz.png "Trajectory at 5 Hz")
 
 5 Hz
 ----
