@@ -98,16 +98,20 @@ void pd_control(int relative_degrees) {
   char printBuffer[64];
   int length;
   int current_counts = encoders_get_counts_m2();
+  int temp_Vm;
+
   G_Pm = current_counts;
   G_Pr = degrees_in_wheel_ticks(relative_degrees);
-  G_Vm = G_current_speed; // TODO: current motor velocity?
-  // G_Vm = ((G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts));
+
+  G_Vm = G_current_speed;
+  // G_Vm = (G_ms_ticks * current_counts) - (G_ms_ticks * G_previous_counts);
+
   G_T = (G_Kp * (G_Pr - G_Pm)) - (int)(((float)G_Kd/10.0f) * (float)G_Vm);
 
   drive_motor(G_T);
 
-  // every 100ms
-  if ((G_ms_ticks % 100) == 0) {
+  // every 10ms
+  if ((G_ms_ticks % 10) == 0) {
     if (G_logging_enabled) {
       print_current_values();
     }

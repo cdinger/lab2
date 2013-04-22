@@ -39,6 +39,48 @@ and error tuning. Maximum torque produced with these gains is 164.
 
 2. Change the step size to something very large (more than 2pi), and try a reference position of 4pi+current_position. How does system behavior differ from your tuned step size? Try tuning your controller for that very large step size. What happens if you then set the reference position to be very close to the current position (within a few degrees)? 
 
+Assuming that by 'more than 2pi', you want a step size bigger than 1
+full rotation (360 degrees):
+
+Step size: 720 degrees (F=1000 S=720 Kd=1/10 Kp=20 Vm=0 Pr=216 Pm=216 T=0)
+---
+
+With a step size of 720, the tracjectory interpolator correctly limit
+the motor for target movements that are larger than 720 degrees. For
+smaller movements, like 180 degrees, the interpolator doesn't provide
+any value. The only reason the motor continues to work correctly is
+because the drive_motor() funtion limits it's torque input to 255. The
+illegal motor inputs generated at this step size are ignored.
+
+Small refernce positions
+---
+
+Small reference positions at this step size still appear to work. I was
+able to input 10 degrees and see at least some motor movement.
+
+
 3. Using your optimally tuned values for the PD controller running at 1kHz, graph Pm, Pr and T while executing the trajectory: rotate the motor forward 360 degrees, hold for .5 seconds, then rotate backwards for 360 degrees, hold for .5 seconds, rotate forwards for 5 degrees. Be sure to graph the entire trajectory. 
 
+Note: the reference points were entered manually; the gaps between
+movements may not be exactly .5 seconds.
+
+![Trajectory graph at 1 kHz](graph_1khz.png "Trajectory at 1 kHz")
+
 4. Run your PD controller at 50Hz and 5Hz while graphing the same variables. Discuss the results.
+
+Note: the reference points were entered manually; the gaps between movements may not be exactly .5 seconds.
+
+50 Hz
+-----
+
+![Trajectory graph at 50 Hz](graph_50hz.png "Trajectory at 50 Hz")
+
+At 50 Hz, the motor appeared to act similar to 1kHz.
+
+![Trajectory graph at 5 Hz](graph_5hz.png "Trajectory at 5 Hz")
+
+5 Hz
+----
+
+At 5Hz, the motor swung around erratically and the program crashed three
+steps in.
