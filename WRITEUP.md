@@ -7,31 +7,40 @@ Christian Dinger
 
 1. Experiment with the speed of the motor: Run your motor at full speed. Modify your gains to achieve position control at that speed (as best you can). Slow the motor down as much as possible. Modify your gains to acheive position control. Repeat with one or two speeds in between. For each, record the approximate speed in rotations per second, record your equation (gains), and report on the behavior of the system and your ability to control the position.
 
-Full speed (F=1000 S=45 Kd=1/10 Kp=30 Vm=0 Pr=72 Pm=72 T=0)
+Full speed
 ---
+
+    (F=1000 S=45 Kd=1/10 Kp=30 Vm=0 Pr=72 Pm=72 T=0)
+
 
 With these gains, the maximum motor torque is 249, very close to the
 physical maximum of 255. At this high speed, there is a slight
 overshoot/oscillation at the end of the full trajectory.
 
-Slow speed (F=1000 S=45 Kd=1/10 Kp=5 Vm=9 Pr=72 Pm=70 T=10)
+Slow speed
 ---
+
+    (F=1000 S=45 Kd=1/10 Kp=5 Vm=9 Pr=72 Pm=70 T=10)
 
 These lower gains produced a maximum torque value of 42. The speed of
 the motor was obviously much slower, but there was no overshoot of the
 final target; as the motor approached the target is slowed smoothly to a
 stop.
 
-Mid-slow speed (F=1000 S=45 Kd=1/10 Kp=12 Vm=0 Pr=72 Pm=72 T=0)
+Mid-slow speed
 ---
+
+    (F=1000 S=45 Kd=1/10 Kp=12 Vm=0 Pr=72 Pm=72 T=0)
 
 These gains produced slightly faster motor movement, but not so fast
 that any oscillation ocurred. The motor slows nicely as it approached
 its final target position without any overshoot. Maximum torque produced
 with these gains is 100.
 
-Mid-fast speed (F=1000 S=45 Kd=1/10 Kp=20 Vm=0 Pr=72 Pm=72 T=0)
+Mid-fast speed
 ---
+
+    (F=1000 S=45 Kd=1/10 Kp=20 Vm=0 Pr=72 Pm=72 T=0)
 
 These gains produced even faster motor moves; still without oscillation.
 In fact, this set of gains was the 'optimal' gains I set through trial
@@ -42,8 +51,10 @@ and error tuning. Maximum torque produced with these gains is 164.
 Assuming that by 'more than 2pi', you want a step size bigger than 1
 full rotation (360 degrees):
 
-Step size: 720 degrees (F=1000 S=720 Kd=1/10 Kp=20 Vm=0 Pr=216 Pm=216 T=0)
+Step size: 720 degrees
 ---
+
+    (F=1000 S=720 Kd=1/10 Kp=20 Vm=0 Pr=216 Pm=216 T=0)
 
 With a step size of 720, the tracjectory interpolator correctly limit
 the motor for target movements that are larger than 720 degrees. For
@@ -52,7 +63,7 @@ any value. The only reason the motor continues to work correctly is
 because the drive_motor() funtion limits it's torque input to 255. The
 illegal motor inputs generated at this step size are ignored.
 
-Small refernce positions
+Small reference positions
 ---
 
 Small reference positions at this step size still appear to work. I was
@@ -79,10 +90,10 @@ At 50 Hz, the motor appeared to act similar to 1kHz with the exception
 of the 5 degree target; the motor was unable to produce any movement for
 this target.
 
-![Trajectory graph at 5 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_50hz.png "Trajectory at 5 Hz")
-
 5 Hz
 ----
+
+![Trajectory graph at 5 Hz](https://github.umn.edu/ding0057/lab2/raw/master/graph_50hz.png "Trajectory at 5 Hz")
 
 At 5Hz, the motor swung around erratically and the program crashed three
 steps in.
